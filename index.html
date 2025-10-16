@@ -3,55 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Control de Muelles 312–370</title>
-
-  <!-- Tailwind (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="assets/styles.css" />
-
-  <!-- React + ReactDOM (UMD) -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-
-  <!-- XLSX -->
-  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <title>Prueba GitHub Pages — Hola</title>
+  <style>
+    html,body{height:100%} body{display:grid;place-items:center;background:#f8fafc;color:#0f172a;font-family:system-ui,sans-serif}
+    .box{padding:24px 28px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen">
-  <div id="diag" class="p-2 text-sm"></div>
-  <div id="app" class="min-h-full"></div>
-
-  <script>
-    (function(){
-      const diag = document.getElementById('diag');
-      function banner(msg) {
-        const el = document.createElement('div');
-        el.className = 'bg-red-100 text-red-800 border border-red-300 rounded px-3 py-2 mb-2';
-        el.textContent = msg;
-        diag.appendChild(el);
-      }
-      // Comprobaciones previas
-      if (!window.React) banner('React no cargó. ¿Bloqueado el CDN unpkg.com?');
-      if (!window.ReactDOM) banner('ReactDOM no cargó.');
-      if (!window.XLSX) banner('XLSX no cargó.');
-
-      // Carga scripts en orden y detecta 404
-      const scripts = ["js/utils.js","js/state.js","js/parsers.js","js/components.js","js/app.js"];
-      let loaded = 0;
-      scripts.forEach(src => {
-        const s = document.createElement('script');
-        s.src = src;
-        s.onerror = () => banner('No se pudo cargar: ' + src + ' (¿ruta/carpeta correcta?)');
-        s.onload = () => {
-          loaded++;
-          if (loaded === scripts.length) {
-            if (!window.Components || !window.Components.App) {
-              banner('La App no está disponible (window.Components.App undefined). Revisa components.js');
-            }
-          }
-        };
-        document.body.appendChild(s);
-      });
-    })();
-  </script>
+<body>
+  <div class="box">
+    <h1 style="margin:0 0 8px 0">Hola mundo 👋</h1>
+    <p style="margin:0">Si ves este mensaje, <strong>GitHub Pages</strong> está sirviendo <code>index.html</code> correctamente.</p>
+  </div>
 </body>
 </html>

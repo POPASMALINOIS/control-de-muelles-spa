@@ -1,6 +1,6 @@
 (function(){
   const { useState, useEffect, useMemo, useRef } = React;
-  const { MUELLE_MIN, MUELLE_MAX, range, fmt, estadoDe, clsEstado, normStr, toISOFromHHMM, normMat, normPrec } = window.Utils;
+  const { MUELLE_MIN, MUELLE_MAX, range, fmt, estadoDe, clsEstado, normStr, toISOFromHHMM } = window.Utils;
   const { loadData, saveData, mergeInto } = window.State;
   const { parseJson, parseHtml } = window.Parsers;
 
@@ -71,8 +71,12 @@
             React.createElement('div', { className: 'font-medium' }, camion.empresa || '—'),
             React.createElement('div', { className: 'opacity-80' }, camion.carga || '—'),
             React.createElement('div', { className: 'mt-1' }, `Llega: ${fmt(camion.horaLlegada)} · Límite: ${fmt(camion.horaSalidaLimite)}`),
-            React.createElement('div', { className: 'mt-1' }, `Mat.: ${camion.matricula || '—'} · Prec.: ${camion.precinto || '—'}`),
-            React.createElement('div', { className: 'mt-1 text-xs text-slate-500' }, `Fuente: ${camion.fuente || '—'} · ${
+            React.createElement('div', { className: 'mt-1' }, `Mat.: ${camion.matricula || '—'}`),
+            React.createElement('div', { className: 'mt-1' }, `Estado: ${camion.precinto || '—'}`),
+            camion.observaciones
+              ? React.createElement('div', { className: 'mt-1 text-xs text-slate-500' }, `Obs.: ${camion.observaciones}`)
+              : null,
+            React.createElement('div', { className: 'mt-1 text-xs text-slate-400' }, `Fuente: ${camion.fuente || '—'} · ${
               camion.actualizadoEn ? new Date(camion.actualizadoEn).toLocaleTimeString() : ''
             }`)
           )
@@ -146,7 +150,7 @@
       });
     }
 
-    /* Importar Excel */
+    /* Importar Excel con encabezados personalizados */
     function handleExcel(e) {
       const f = e.target.files?.[0];
       if (!f) return;
@@ -156,29 +160,40 @@
           const wb = XLSX.read(ev.target.result, { type: 'binary' });
           const ws = wb.Sheets[wb.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
           const byMuelle = {};
           for (const r of rows) {
-            const muelle = Number(r.MUELLE ?? r.muelle ?? r['Muelle']);
+            const muelle = Number(r.MUELLE);
             if (!(muelle >= MUELLE_MIN && muelle <= MUELLE_MAX)) continue;
-            const empresa = normStr(r.EMPRESA ?? r.empresa ?? r['Empresa']);
-            const carga = normStr(r.CARGA ?? r.carga ?? r['Carga']);
-            const llegada = toISOFromHHMM(r.LLEGADA ?? r['Hora llegada'] ?? r['LLEGADA HH:MM']);
-            const salida = toISOFromHHMM(r.SALIDA ?? r['Hora límite'] ?? r['SALIDA HH:MM']);
+
+            const transportista = (r.TRANSPORTISTA || '').trim();
+            const destino = (r.DESTINO || '').trim();
+            const llegada = (r.LLEGADA || '').trim();
+            const salida = (r.SALIDA || '').trim();
+            const salidaTope = (r['SALIDA TOPE'] || '').trim();
+            const estado = (r.ESTADO || '').trim();
+            const obs = (r.OBSERVACIONES || '').trim();
+            const matricula = (r.MATRICULA || '').trim();
+
             byMuelle[muelle] = {
-              id: r.ID || r.CMR || `${empresa}-${muelle}-${r.SALIDA || ''}`,
-              empresa,
-              carga,
-              matricula: normMat(r.MATRICULA || r['Matrícula']),
-              precinto: normPrec(r.PRECINTO || r['Precinto']),
-              horaLlegada: llegada,
-              horaSalidaLimite: salida,
+              id: `${muelle}-${matricula}-${salida}`,
+              empresa: transportista || '—',
+              carga: destino || '—',
+              matricula: matricula || '—',
+              precinto: estado || '',
+              horaLlegada: toISOFromHHMM(llegada),
+              horaSalidaLimite: toISOFromHHMM(salidaTope || salida),
               muelle,
+              observaciones: obs,
               fuente: 'excel',
+              actualizadoEn: new Date().toISOString()
             };
           }
+
           const merged = mergeInto(data, byMuelle);
           setData(merged);
           saveData(merged);
+          alert(`Se han importado ${Object.keys(byMuelle).length} muelles desde el Excel.`);
         } catch (err) {
           alert('Error leyendo Excel: ' + err);
         }
@@ -205,26 +220,6 @@
         saveData(merged);
       } catch (err) {
         alert('No se pudo traer la URL (posible CORS). Usa "Pegar datos".');
-      }
-    }
-
-    /* Importar por pegado */
-    function pegarDatos() {
-      try {
-        const raw = pegarRaw.trim();
-        if (!raw) return;
-        let patch = {};
-        try {
-          patch = parseJson(JSON.parse(raw));
-        } catch {
-          patch = parseHtml(raw);
-        }
-        const merged = mergeInto(data, patch);
-        setData(merged);
-        saveData(merged);
-        setPegarRaw('');
-      } catch (err) {
-        alert('Datos no reconocidos: ' + err);
       }
     }
 
@@ -259,20 +254,10 @@
       React.createElement(
         'div',
         { className: 'controls flex flex-wrap gap-2 items-center' },
-        React.createElement('input', { placeholder: 'Filtrar por empresa', value: filtroEmpresa, onChange: e => setFiltroEmpresa(e.target.value), className: 'card w-64' }),
+        React.createElement('input', { placeholder: 'Filtrar por transportista', value: filtroEmpresa, onChange: e => setFiltroEmpresa(e.target.value), className: 'card w-64' }),
         React.createElement('label', { className: 'flex items-center gap-2' },
           React.createElement('input', { type: 'checkbox', checked: soloAlertas, onChange: e => setSoloAlertas(e.target.checked) }),
           'Solo alertas/retrasos'
-        )
-      ),
-      React.createElement(
-        'details',
-        { className: 'controls card' },
-        React.createElement('summary', null, 'Pegar datos (alternativa sin CORS)'),
-        React.createElement('p', { className: 'text-sm text-slate-600 mb-2' }, 'Pega aquí JSON (array o {items:[]}) o HTML de una tabla.'),
-        React.createElement('textarea', { value: pegarRaw, onChange: e => setPegarRaw(e.target.value), rows: 6, className: 'w-full p-2 border rounded' }),
-        React.createElement('div', { className: 'mt-2 flex justify-end' },
-          React.createElement('button', { onClick: pegarDatos, className: 'card hover:shadow-md' }, 'Importar')
         )
       ),
       React.createElement(
@@ -283,7 +268,7 @@
         )
       ),
       React.createElement('footer', { className: 'text-xs text-slate-500 py-6' },
-        'SPA estática · Datos en localStorage · Importa Excel/URL/pegar contenido · Drag & Drop entre muelles · Modo TV')
+        'SPA estática · Datos en localStorage · Importa Excel · Drag & Drop entre muelles · Modo TV')
     );
   }
 

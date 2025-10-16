@@ -1,6 +1,6 @@
 (function(){
   const { useState, useEffect, useMemo, useRef } = React;
-  const { MUELLE_MIN, MUELLE_MAX, range, fmt, estadoDe, clsEstado, normStr, toISOFromHHMM } = window.Utils;
+  const { MUELLE_MIN, MUELLE_MAX, range, fmt, estadoDe, clsEstado, toISOFromHHMM } = window.Utils;
   const { loadData, saveData, mergeInto } = window.State;
   const { parseJson, parseHtml } = window.Parsers;
 
@@ -90,7 +90,6 @@
     const [data, setData] = useState(() => loadData());
     const [filtroEmpresa, setFiltroEmpresa] = useState('');
     const [soloAlertas, setSoloAlertas] = useState(false);
-    const [pegarRaw, setPegarRaw] = useState('');
     const [tv, setTv] = useState(false);
     const fileRef = useRef(null);
 
@@ -150,7 +149,7 @@
       });
     }
 
-    /* Importar Excel con encabezados personalizados */
+    /* Importar Excel con encabezados en la fila 3 */
     function handleExcel(e) {
       const f = e.target.files?.[0];
       if (!f) return;
@@ -159,11 +158,13 @@
         try {
           const wb = XLSX.read(ev.target.result, { type: 'binary' });
           const ws = wb.Sheets[wb.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+          // Leer desde la fila 3 (range: 2)
+          const rows = XLSX.utils.sheet_to_json(ws, { defval: '', header: 0, range: 2 });
+          console.log('Filas detectadas desde fila 3:', rows.slice(0, 5));
 
           const byMuelle = {};
           for (const r of rows) {
-            const muelle = Number(r.MUELLE);
+            const muelle = parseInt(r.MUELLE);
             if (!(muelle >= MUELLE_MIN && muelle <= MUELLE_MAX)) continue;
 
             const transportista = (r.TRANSPORTISTA || '').trim();
@@ -196,31 +197,11 @@
           alert(`Se han importado ${Object.keys(byMuelle).length} muelles desde el Excel.`);
         } catch (err) {
           alert('Error leyendo Excel: ' + err);
+          console.error(err);
         }
         if (fileRef.current) fileRef.current.value = '';
       };
       reader.readAsBinaryString(f);
-    }
-
-    /* Importar desde URL */
-    async function fetchURL() {
-      const url = prompt('Pega la URL (debe permitir CORS en navegador):');
-      if (!url) return;
-      try {
-        const res = await fetch(url);
-        const text = await res.text();
-        let byMuelle = {};
-        try {
-          byMuelle = parseJson(JSON.parse(text));
-        } catch {
-          byMuelle = parseHtml(text);
-        }
-        const merged = mergeInto(data, byMuelle);
-        setData(merged);
-        saveData(merged);
-      } catch (err) {
-        alert('No se pudo traer la URL (posible CORS). Usa "Pegar datos".');
-      }
     }
 
     // Notificaciones de alertas
@@ -247,7 +228,6 @@
         { className: 'controls flex flex-wrap gap-2 items-center' },
         React.createElement('h1', { className: 'text-xl font-semibold mr-auto' }, 'Control de Muelles 312–370'),
         React.createElement('input', { ref: fileRef, type: 'file', accept: '.xlsx,.xls', onChange: handleExcel, className: 'block' }),
-        React.createElement('button', { onClick: fetchURL, className: 'card hover:shadow-md' }, 'Traer desde URL'),
         React.createElement('button', { onClick: () => { if (confirm('¿Borrar datos locales?')) { setData({}); saveData({}); } }, className: 'card hover:shadow-md' }, 'Limpiar'),
         React.createElement('button', { onClick: () => setTv(v => !v), className: 'card hover:shadow-md' }, tv ? 'Salir modo TV' : 'Modo TV')
       ),
@@ -268,7 +248,7 @@
         )
       ),
       React.createElement('footer', { className: 'text-xs text-slate-500 py-6' },
-        'SPA estática · Datos en localStorage · Importa Excel · Drag & Drop entre muelles · Modo TV')
+        'SPA estática · Datos en localStorage · Importa Excel (fila 3) · Drag & Drop · Modo TV')
     );
   }
 

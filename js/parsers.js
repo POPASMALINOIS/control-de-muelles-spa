@@ -23,11 +23,12 @@
 
   function parseHtml(html){
     const out = {};
-    const rowRe = /<tr[^>]*>([\\s\\S]*?)<\\/tr>/gi;
+    const rowRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi; // <— corregido
     let m;
     while((m=rowRe.exec(html))){
       const row = m[1];
-      const cells = Array.from(row.matchAll(/<t[dh][^>]*>([\\s\\S]*?)<\\/t[dh]>/gi)).map(x=>x[1].replace(/<[^>]+>/g,'').trim());
+      const cells = Array.from(row.matchAll(/<t[dh][^>]*>([\s\S]*?)<\/t[dh]>/gi)) // <— corregido
+        .map(x=>x[1].replace(/<[^>]+>/g,'').trim());
       if(cells.length<3) continue;
       const muelle = Number(cells[0]);
       if(!(muelle>=MUELLE_MIN && muelle<=MUELLE_MAX)) continue;

@@ -20,7 +20,7 @@
   }
   function toISOFromHHMM(hhmm){
     if(!hhmm) return undefined;
-    const m=String(hhmm).match(/(\\d{1,2}):(\\d{2})/);
+    const m=String(hhmm).match(/(\d{1,2}):(\d{2})/); // <— corregido
     if(!m) return undefined;
     const d=new Date();
     d.setHours(Number(m[1])||0, Number(m[2])||0, 0, 0);
@@ -28,7 +28,7 @@
   }
   function normStr(s){ return (s??'').toString().trim(); }
   function normMat(s){ const v=normStr(s).toUpperCase().replace(/[^A-Z0-9]/g,''); return v||undefined; }
-  function normPrec(s){ const v=normStr(s).toUpperCase().replace(/\\s+/g,''); return v||undefined; }
+  function normPrec(s){ const v=normStr(s).toUpperCase().replace(/\s+/g,''); return v||undefined; }
 
   window.Utils = { MUELLE_MIN, MUELLE_MAX, range, fmt, estadoDe, clsEstado, toISOFromHHMM, normStr, normMat, normPrec };
 })();

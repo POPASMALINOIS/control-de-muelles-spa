@@ -1,0 +1,27 @@
+/* Estilos base complementarios a Tailwind */
+.card {
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+  background: #fff;
+  padding: .75rem;
+}
+.badge {
+  font-size: .75rem;
+  padding: .25rem .5rem;
+  border-radius: .5rem;
+}
+.grid-muelles {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: .75rem;
+}
+@media (max-width: 1280px) {
+  .grid-muelles {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .grid-muelles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

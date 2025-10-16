@@ -3,16 +3,39 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Prueba GitHub Pages — Hola</title>
-  <style>
-    html,body{height:100%} body{display:grid;place-items:center;background:#f8fafc;color:#0f172a;font-family:system-ui,sans-serif}
-    .box{padding:24px 28px;border:1px solid #cbd5e1;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.06)}
-  </style>
+  <title>Control de Muelles 312–370</title>
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/styles.css" />
 </head>
-<body>
-  <div class="box">
-    <h1 style="margin:0 0 8px 0">Hola mundo 👋</h1>
-    <p style="margin:0">Si ves este mensaje, <strong>GitHub Pages</strong> está sirviendo <code>index.html</code> correctamente.</p>
-  </div>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <div id="diag" class="p-2 text-sm"></div>
+  <div id="app" class="min-h-full"></div>
+
+  <!-- React + ReactDOM + XLSX desde jsDelivr (más estable) -->
+  <script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+  <!-- Núcleo JS local: orden importa -->
+  <script>
+    // Diagnóstico simple en la propia página
+    (function(){
+      const diag = document.getElementById('diag');
+      function ok(m){ const d=document.createElement('div'); d.className='bg-emerald-50 text-emerald-800 border border-emerald-200 rounded px-3 py-1 mb-1'; d.textContent=m; diag.appendChild(d); }
+      function bad(m){ const d=document.createElement('div'); d.className='bg-red-50 text-red-800 border border-red-200 rounded px-3 py-1 mb-1'; d.textContent=m; diag.appendChild(d); }
+
+      if(!window.React) bad('React no cargó (CDN)'); else ok('React OK');
+      if(!window.ReactDOM) bad('ReactDOM no cargó (CDN)'); else ok('ReactDOM OK');
+      if(!window.XLSX) bad('XLSX no cargó (CDN)'); else ok('XLSX OK');
+    })();
+  </script>
+
+  <script src="js/utils.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/parsers.js"></script>
+  <script src="js/components.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
